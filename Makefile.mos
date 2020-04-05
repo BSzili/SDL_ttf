@@ -1,0 +1,126 @@
+# Makefile to build the SDL_ttf 2
+
+CDEFS   = -DAROS_ALMOST_COMPATIBLE -DUSE_INLINE_STDARG -D__MORPHOS_SHAREDLIBS -D_NO_PPCINLINE -DUSE_FREETYPE_ERRORS -DFT2_BUILD_LIBRARY
+#CC      = ppc-morphos-gcc-9 -noixemul
+CC      = ppc-morphos-gcc-4 -noixemul
+INCLUDE = -I../SDL-mos-sdl2/include -Iexternal/freetype-2.10.1/include
+CFLAGS  = -mcpu=750 -mtune=7450 -O2 $(INCLUDE) -mresident32 -Wall -Wno-pointer-sign -fno-strict-aliasing $(CDEFS)
+AR	= ppc-morphos-ar
+
+ECHE = echo -e
+BOLD = \033[1m
+NRML = \033[22m
+
+COMPILING = @$(ECHE) "compiling $(BOLD)$@$(NRML)..."
+LINKING = @$(ECHE) "linking $(BOLD)$@$(NRML)..."
+STRIPPING = @$(ECHE) "stripping $(BOLD)$@$(NRML)..."
+ARCHIVING = @$(ECHE) "archiving $(BOLD)$@$(NRML)..."
+HEADERING = @$(ECHE) "creating headers files $(BOLD)$@$(NRML)..."
+
+TARGET  = libSDL2_ttf.a
+LIBRARY = sdl2_ttf.library
+
+SOURCES = SDL_ttf.c
+
+FTSOURCES = \
+	src/autofit/autofit.c \
+	src/base/ftbase.c \
+	src/base/ftbbox.c \
+	src/base/ftbdf.c \
+	src/base/ftbitmap.c \
+	src/base/ftcid.c \
+	src/base/ftdebug.c \
+	src/base/ftfstype.c \
+	src/base/ftgasp.c \
+	src/base/ftglyph.c \
+	src/base/ftgxval.c \
+	src/base/ftinit.c \
+	src/base/ftmm.c \
+	src/base/ftotval.c \
+	src/base/ftpatent.c \
+	src/base/ftpfr.c \
+	src/base/ftstroke.c \
+	src/base/ftsynth.c \
+	src/base/ftsystem.c \
+	src/base/fttype1.c \
+	src/base/ftwinfnt.c \
+	src/bdf/bdf.c \
+	src/bzip2/ftbzip2.c \
+	src/cache/ftcache.c \
+	src/cff/cff.c \
+	src/cid/type1cid.c \
+	src/gzip/ftgzip.c \
+	src/lzw/ftlzw.c \
+	src/pcf/pcf.c \
+	src/pfr/pfr.c \
+	src/psaux/psaux.c \
+	src/pshinter/pshinter.c \
+	src/psnames/psnames.c \
+	src/raster/raster.c \
+	src/sfnt/sfnt.c \
+	src/smooth/smooth.c \
+	src/truetype/truetype.c \
+	src/type1/type1.c \
+	src/type42/type42.c \
+	src/winfonts/winfnt.c
+
+CORESOURCES = MorphOS/*.c
+COREOBJECTS = $(shell echo $(CORESOURCES) | sed -e 's,\.c,\.o,g')
+
+OBJECTS = $(shell echo $(SOURCES) | sed -e 's,\.c,\.o,g')
+FTOBJECTS = $(addprefix external/freetype-2.10.1/, $(FTSOURCES:.c=.o))
+
+all: $(LIBRARY) sdklibs
+
+sdklibs:
+	@cd MorphOS/devenv; if ! $(MAKE) all; then exit 1; fi;
+
+sdk: sdklibs
+	mkdir -p /usr/local/include/SDL2
+	mkdir -p /usr/local/lib
+	mkdir -p /usr/local/lib/libb32
+	cp SDL_ttf.h /usr/local/include/SDL2/SDL2_ttf.h
+	cp MorphOS/devenv/lib/libSDL_ttf.a  /usr/local/lib/SDL2_ttf.a
+	cp MorphOS/devenv/lib/libb32/libSDL_ttf.a  /usr/local/lib/libb32/SDL2_ttf.a
+
+headers:
+	$(HEADERING)
+	@cvinclude.pl --fd=MorphOS/sdk/fd/sdl2_ttf_lib.fd --clib=MorphOS/sdk/clib/sdl2_ttf_protos.h --proto=MorphOS/sdk/proto/sdl2_ttf.h
+	@cvinclude.pl --fd=MorphOS/sdk/fd/sdl2_ttf_lib.fd --clib=MorphOS/sdk/clib/sdl2_ttf_protos.h --inline=MorphOS/sdk/ppcinline/sdl2_ttf.h
+
+install: $(LIBRARY)
+	@cp $(LIBRARY) LIBS:
+	-flushlib $(LIBRARY)
+
+#install-iso: $(LIBRARY)
+#	mkdir -p $(ISOPATH)MorphOS/Libs/
+#	@cp $(LIBRARY) $(ISOPATH)MorphOS/Libs/
+
+install-iso:
+	@echo "not for the ISO.. skipping"
+
+MorphOS/TTF_library.o: MorphOS/TTF_library.c MorphOS/TTF_library.h MorphOS/TTF_stubs.h
+	$(COMPILING)
+	$(CC) -mcpu=750 -O2 $(INCLUDE) -Wall -fno-strict-aliasing -DAROS_ALMOST_COMPATIBLE -o $@ -c $*.c
+
+$(TARGET): $(OBJECTS) $(FTOBJECTS)
+	$(ARCHIVING)
+	@$(AR) crvs $@ $^
+
+$(LIBRARY): $(TARGET) $(COREOBJECTS)
+	$(LINKING)
+	$(CC) -nostartfiles -mresident32 -Wl,-Map=sdl2_ttf.map $(COREOBJECTS) -o $@.db -L. -lSDL2_ttf -L../SDL-mos-sdl2/src/core/morphos/devenv/lib -lSDL2 -lm
+	$(STRIPPING)
+	@ppc-morphos-strip -o $@ --remove-section=.comment $@.db
+
+glfont: sdklibs glfont.c
+	$(CC) -noixemul -O2 -Wall -DHAVE_OPENGL glfont.c -o $@ -I../SDL-mos-sdl2/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L../SDL-mos-sdl2/src/core/morphos/devenv/lib -lSDL2_ttf -lSDL2
+
+showfont: sdklibs showfont.c
+	$(CC) -noixemul -O2 -Wall showfont.c -o $@ -I../SDL-mos-sdl2/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L../SDL-mos-sdl2/src/core/morphos/devenv/lib -lSDL2_ttf -lSDL2
+
+clean:
+	rm -f $(LIBRARY) $(TARGET) $(OBJECTS) $(FTOBJECTS) $(COREOBJECTS) *.db *.s
+
+dump:
+	ppc-morphos-objdump --disassemble-all --reloc $(LIBRARY).db >$(LIBRARY).s
