@@ -80,8 +80,8 @@ sdk: sdklibs
 	mkdir -p /usr/local/lib
 	mkdir -p /usr/local/lib/libb32
 	cp SDL_ttf.h /usr/local/include/SDL2/SDL2_ttf.h
-	cp MorphOS/devenv/lib/libSDL_ttf.a  /usr/local/lib/SDL2_ttf.a
-	cp MorphOS/devenv/lib/libb32/libSDL_ttf.a  /usr/local/lib/libb32/SDL2_ttf.a
+	cp MorphOS/devenv/lib/libSDL2_ttf.a  /usr/local/lib/SDL2_ttf.a
+	cp MorphOS/devenv/lib/libb32/libSDL2_ttf.a  /usr/local/lib/libb32/SDL2_ttf.a
 
 headers:
 	$(HEADERING)
