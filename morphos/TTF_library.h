@@ -21,6 +21,8 @@
 #define __TEXTSEGMENT__
 #endif
 
+#include <SDL_ttf.h>
+
 struct CTDT
 {
 	int	(*fp)(void);

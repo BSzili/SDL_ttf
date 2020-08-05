@@ -1,8 +1,6 @@
-# Makefile to build the SDL_ttf version 2
+ # Makefile to build the SDL_ttf version 2
 
-#CC      = ppc-morphos-gcc-9 -noixemul
-CC      = ppc-morphos-gcc-4 -noixemul
-INCLUDE = -I../../../../include -I../sdk
+CC      = ppc-morphos-gcc-9 -noixemul
 CFLAGS  =  -mcpu=750 -mtune=7450 -O2 $(INCLUDE) -Wall -Wno-pointer-sign -fno-strict-aliasing
 AR	= ppc-morphos-ar
 TARGET = libSDL2_ttf.a
@@ -55,4 +53,4 @@ clean:
 	@-rm -rf lib *.s
 
 dump:
-	objdump --disassemble-all --reloc lib/$(TARGET).a >lib/libSDL2_ttf.s
+	ppc-morphos-objdump --disassemble-all --reloc lib/$(TARGET).a >lib/libSDL2_ttf.s
