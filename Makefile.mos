@@ -3,7 +3,7 @@
 CDEFS   = -DAROS_ALMOST_COMPATIBLE -DUSE_INLINE_STDARG -D__MORPHOS_SHAREDLIBS -D_NO_PPCINLINE -DUSE_FREETYPE_ERRORS -DFT2_BUILD_LIBRARY
 CC      = ppc-morphos-gcc-9 -noixemul
 
-INCLUDE = -I/usr/local/include -I. -Iexternal/freetype-2.10.1/include
+INCLUDE = -I/usr/local/include/SDL2 -I. -Iexternal/freetype-2.10.1/include
 CFLAGS  = -mcpu=750 -mtune=7450 -O2 $(INCLUDE) -mresident32 -Wall -Wno-pointer-sign -fno-strict-aliasing $(CDEFS)
 AR	= ppc-morphos-ar
 
@@ -109,10 +109,10 @@ $(LIBRARY): $(TARGET) $(COREOBJECTS)
 	@ppc-morphos-strip -o $@ --remove-section=.comment $@.db
 
 glfont: sdklibs glfont.c
-	$(CC) -O2 -Wall -DHAVE_OPENGL glfont.c -o $@ -I/usr/local/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
+	$(CC) -O2 -Wall -DHAVE_OPENGL glfont.c -o $@ $(INCLUDE) -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
 
 showfont: sdklibs showfont.c
-	$(CC) -O2 -Wall showfont.c -o $@ -I/usr/local/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
+	$(CC) -O2 -Wall showfont.c -o $@ $(INCLUDE) -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
 
 clean:
 	rm -f $(LIBRARY) $(TARGET) $(OBJECTS) $(FTOBJECTS) $(COREOBJECTS) *.db *.s
