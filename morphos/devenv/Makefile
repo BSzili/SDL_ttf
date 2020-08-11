@@ -50,7 +50,7 @@ lib/libb32/libSDL2_ttf-nc.a: sdl-startup-brel-nc.o ../sdk/fd/sdl2_ttf_lib.fd
 	@$(AR) crus $@ sdl-startup-brel-nc.o
 
 clean:
-	@-rm -rf lib *.s
+	@-rm -rf lib *.o *.s
 
 dump:
 	ppc-morphos-objdump --disassemble-all --reloc lib/$(TARGET).a >lib/libSDL2_ttf.s

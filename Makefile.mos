@@ -3,7 +3,7 @@
 CDEFS   = -DAROS_ALMOST_COMPATIBLE -DUSE_INLINE_STDARG -D__MORPHOS_SHAREDLIBS -D_NO_PPCINLINE -DUSE_FREETYPE_ERRORS -DFT2_BUILD_LIBRARY
 CC      = ppc-morphos-gcc-9 -noixemul
 
-INCLUDE = -I../SDL-mos-2.0.12-ogl/include -I. -Iexternal/freetype-2.10.1/include
+INCLUDE = -I/usr/local/include -I. -Iexternal/freetype-2.10.1/include
 CFLAGS  = -mcpu=750 -mtune=7450 -O2 $(INCLUDE) -mresident32 -Wall -Wno-pointer-sign -fno-strict-aliasing $(CDEFS)
 AR	= ppc-morphos-ar
 
@@ -94,13 +94,6 @@ install: $(LIBRARY)
 	@cp $(LIBRARY) LIBS:
 	-flushlib $(LIBRARY)
 
-#install-iso: $(LIBRARY)
-#	mkdir -p $(ISOPATH)morphos/Libs/
-#	@cp $(LIBRARY) $(ISOPATH)morphos/Libs/
-
-install-iso:
-	@echo "not for the ISO.. skipping"
-
 morphos/TTF_library.o: morphos/TTF_library.c morphos/TTF_library.h morphos/TTF_stubs.h
 	$(COMPILING)
 	$(CC) -mcpu=750 $(INCLUDE) -Wall -fno-strict-aliasing -D__AMIGADATE__=\"$(AMIGADATE)\" -DAROS_ALMOST_COMPATIBLE -o $@ -c $*.c
@@ -111,18 +104,19 @@ $(TARGET): $(OBJECTS) $(FTOBJECTS)
 
 $(LIBRARY): $(TARGET) $(COREOBJECTS)
 	$(LINKING)
-	$(CC) -nostartfiles -O0 -mresident32 -Wl,-Map=sdl2_ttf.map $(COREOBJECTS) -o $@.db -L. -lSDL2_ttf -L../SDL-mos-2.0.12-ogl/src/core/morphos/devenv/lib -lSDL2 -lm
+	$(CC) -nostartfiles -O0 -mresident32 -Wl,-Map=sdl2_ttf.map $(COREOBJECTS) -o $@.db -L. -lSDL2_ttf -L/usr/local/lib -lSDL2 -lm
 	$(STRIPPING)
 	@ppc-morphos-strip -o $@ --remove-section=.comment $@.db
 
 glfont: sdklibs glfont.c
-	$(CC) -noixemul -O2 -Wall -DHAVE_OPENGL glfont.c -o $@ -I../SDL-mos-2.0.12-ogl/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L../SDL-mos-sdl2/src/core/morphos/devenv/lib -lSDL2_ttf -lSDL2
+	$(CC) -O2 -Wall -DHAVE_OPENGL glfont.c -o $@ -I/usr/local/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
 
 showfont: sdklibs showfont.c
-	$(CC) -noixemul -O2 -Wall showfont.c -o $@ -I../SDL-mos-2.0.12-ogl/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L../SDL-mos-sdl2/src/core/morphos/devenv/lib -lSDL2_ttf -lSDL2
+	$(CC) -O2 -Wall showfont.c -o $@ -I/usr/local/include -DUSE_INLINE_STDARG -Lmorphos/devenv/lib -L/usr/local/lib -lSDL2_ttf -lSDL2
 
 clean:
 	rm -f $(LIBRARY) $(TARGET) $(OBJECTS) $(FTOBJECTS) $(COREOBJECTS) *.db *.s
-
+	rm -rf morphos/devenv/lib morphos/devenv/*.o morphos/devenv/*.s
+	
 dump:
 	ppc-morphos-objdump --disassemble-all --reloc $(LIBRARY).db >$(LIBRARY).s
